@@ -31,9 +31,12 @@ const userSchema=new Schema({
         required: true
     },
 
-    "batch":{
-        type:String,
-        required:true
+    "program":{
+        enum:["btech","mtech","phd"]
+    },
+
+    "year":{
+        enum:["1","2","3","4","5"]
     },
 
     "interest":[
