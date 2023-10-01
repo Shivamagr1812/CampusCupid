@@ -1,8 +1,7 @@
 const {Router}=require("express");
 const routes=Router();
-const {createHmac,randomBytes}=require("crypto");
+const {createToken,verifyToken}=require("../authentication/jwt")
 const User=require("../models/user");
-const {createToken,verifyToken}=require("../authentication/jwt");
 
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
@@ -28,50 +27,42 @@ const storage = multer.memoryStorage();
 
 const upload = multer({ storage: storage });
 
-// login route
+
 
 routes.post("/login",async(req,res)=>{
-    
-    var {email,password}=req.body;
-    const user=await User.findOne({email});
-    const salt=process.env.SECRET;
-    const hashedpassword=createHmac('sha256',salt).update(password).digest("hex");
-    if(!hashedpassword===user.password)res.send("wrong password");
-   
-    const privateKey=verifyToken(user.privateKey,password);
-    res.json(privateKey);
-    // res.send("jello");
+    const user=await User.find({email:req.body});
+    if(!user)throw err("wrong email");
+    const token=createToken({email:user.email,pubicKey:user.publicKey});
+    res.cookie("token",token);
+    res.json({user})
 })
 
 // get all users
 
 routes.get('/',async(req,res)=>{
-    var user=await User.find();
-    console.log(user)
-    const query=req.query;
-    if(query){
-        user=User.find({batch:query});
-    }
-    res.send("hello");
+    const user=await User.find();
+    res.json({user});
 })
 
 // sign in and take profile details from user
 
-routes.post("/signin",upload.single('dp'),async(req,res)=>{
+routes.post("/signin",async(req,res)=>{
     
     const user=req.body;
 
     try {
-        const b64 = Buffer.from(req.file.buffer).toString("base64");
-        let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
-        const cldRes = await handleUpload(dataURI);
-        console.log(cldRes.url);
-        var dp = "";
-        dp = cldRes.url;
-        user.dp=dp;
+        // const b64 = Buffer.from(req.file.buffer).toString("base64");
+        // let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+        // const cldRes = await handleUpload(dataURI);
+        // console.log(cldRes.url);
+        // var dp = "";
+        // dp = cldRes.url;
+        // user.dp=dp;
         console.log(user);
         await User.create(user);
-        res.status(200).json(user);
+        const token=createToken({email:user.email,pubicKey:user.publicKey});
+        res.cookie("token",token);
+        res.send(user);
     } catch (error) {
         console.log(error);
         res.send({
@@ -82,9 +73,9 @@ routes.post("/signin",upload.single('dp'),async(req,res)=>{
 
 // add a new crush
 
-routes.get('/addCrush/:id',async(req,res)=>{
+routes.put('/addCrush/:id',async(req,res)=>{
     
-    const user=await User.findOneAndUpdate({_id:req.params.id},{$push:{crushes:req.body}});
+    const user=await User.findOneAndUpdate({_id:req.params.id},{$push:{crushes:req.body._id}});
     // res.send(user);
     console.log(req.params.id);
     res.send("hello");

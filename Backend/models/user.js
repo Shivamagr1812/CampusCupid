@@ -17,10 +17,7 @@ const userSchema=new Schema({
         unique:true
     },
 
-    "salt":{
-        type:String
-    },
-    
+  
     "password":{
         type:String,
         required:true
@@ -28,7 +25,6 @@ const userSchema=new Schema({
 
     "dp":{
         type:String,
-        required: true
     },
 
     "program":{
@@ -67,17 +63,7 @@ const userSchema=new Schema({
     ]
 });
 
-userSchema.pre("save",function (next){
-    const user=this;
-    if(!user.isModified("password"))return;
-    const Token =createToken(this.password,this.privateKey);
-    this.privateKey=Token;
-    const salt=process.env.SECRET
-    const hashedpassword=createHmac('sha256',salt).update(user.password).digest("hex");
-    this.salt=salt;
-    this.password=hashedpassword;
-    next();
-});
+
 
 const User=model("user",userSchema);
 module.exports=User;
