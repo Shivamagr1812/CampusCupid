@@ -28,14 +28,6 @@ const storage = multer.memoryStorage();
 
 const upload = multer({ storage: storage });
 
-// signup route
-
-routes.post("/signin",async(req,res)=>{
-    const user=req.body;
-    await User.create(user);
-    res.status(200).json(user)
-})
-
 // login route
 
 routes.post("/login",async(req,res)=>{
@@ -63,22 +55,11 @@ routes.get('/',async(req,res)=>{
     res.send("hello");
 })
 
-// take profile details from user
+// sign in and take profile details from user
 
-routes.post("/apply",upload.single('dp'),async(req,res)=>{
+routes.post("/signin",upload.single('dp'),async(req,res)=>{
     
     const user=req.body;
-    const name=user.name;
-    const gender=user.gender;
-    const program=user.program;
-    const year=user.year;
-    const password=user.password;
-    const interest=user.interest;
-    const bio=user.bio;
-    const email=user.email;
-    const salt=process.env.SECRET;
-    
-    var entry;
 
     try {
         const b64 = Buffer.from(req.file.buffer).toString("base64");
@@ -87,33 +68,15 @@ routes.post("/apply",upload.single('dp'),async(req,res)=>{
         console.log(cldRes.url);
         var dp = "";
         dp = cldRes.url;
-        entry = new User({
-            name: name,
-            gender: gender,
-            program: program,
-            year: year,
-            password: password,
-            interest: interest,
-            bio: bio,
-            email: email,
-            dp: dp,
-            salt: salt
-        });
-        
+        user.dp=dp;
+        console.log(user);
+        await User.create(user);
+        res.status(200).json(user);
     } catch (error) {
         console.log(error);
         res.send({
         message: error.message,
         });
-    }
-
-    try{
-        await entry.save();
-        console.log("Entry Added!");
-        res.send("");
-    }
-    catch(err){
-        console.log(err)
     }
 });
 
