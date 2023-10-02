@@ -40,6 +40,8 @@ routes.post("/login",async(req,res)=>{
 // get all users
 
 routes.get('/',async(req,res)=>{
+    if(req.body==null)return res.send("invalid")
+    console.log(req.body);
     const user=await User.find();
     res.json({user});
 })
@@ -49,6 +51,7 @@ routes.get('/',async(req,res)=>{
 routes.post("/signin",async(req,res)=>{
     
     const user=req.body;
+    if(!user)res.send("no user");
 
     try {
         // const b64 = Buffer.from(req.file.buffer).toString("base64");
