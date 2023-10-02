@@ -48,19 +48,19 @@ routes.get('/',async(req,res)=>{
 
 // sign in and take profile details from user
 
-routes.post("/signin",async(req,res)=>{
+routes.post("/signin",upload.single('dp'),async(req,res)=>{
     
     const user=req.body;
     if(!user)res.send("no user");
 
     try {
-        // const b64 = Buffer.from(req.file.buffer).toString("base64");
-        // let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
-        // const cldRes = await handleUpload(dataURI);
-        // console.log(cldRes.url);
-        // var dp = "";
-        // dp = cldRes.url;
-        // user.dp=dp;
+        const b64 = Buffer.from(req.file.buffer).toString("base64");
+        let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+        const cldRes = await handleUpload(dataURI);
+        console.log(cldRes.url);
+        var dp = "";
+        dp = cldRes.url;
+        user.dp=dp;
         console.log(user);
         await User.create(user);
         const token=createToken({email:user.email,pubicKey:user.publicKey});
